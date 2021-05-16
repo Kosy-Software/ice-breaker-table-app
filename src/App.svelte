@@ -3,38 +3,17 @@
     import type { AppMessage } from "./lib/appMessages";
     import type { AppState } from "./lib/appState";
     import { KosyApi } from "@kosy/kosy-app-api";
-    import { questions as questionsAndAnswers } from "./lib/questions";
-    
+    import { questions } from "./lib/questions";
+import Button from "./components/Button.svelte";
+import ButtonGroup from "./components/ButtonGroup.svelte";
+   
     let state: AppState = {
-        alreadyAskedQuestions: {},
-        currentQuestion: undefined
+        alreadyAskedQuestionsIndexes: new Set<number>(),
+        currentQuestionIndex: undefined
     };
 
-    let initializerUuid: string;
-    let currentClientUuid: string;
-    let allClients: { [clientUuid: string]: ClientInfo } = {};
-
-    let allClientsArray: ClientInfo[] = [];
-    //Rebuilds the client array when allClients changes
-    $: {
-        allClientsArray = []
-        for (const clientUuid in allClients) {
-            if (Object.prototype.hasOwnProperty.call(allClients, clientUuid)) {
-                const client = allClients[clientUuid];
-                allClientsArray.push(client);
-            }
-        }
-        allClientsArray.sort((a, b) => a.clientName.localeCompare(b.clientName))
-    }
-
-    $: possibleAnswers = questionsAndAnswers[state.currentQuestion]
-
-    const allQuestionsArray: string[] = [];
-    for (const question in questionsAndAnswers) {
-        allQuestionsArray.push(question);
-    }
-
-    $: questionsToAsk = allQuestionsArray.filter(q => !state.alreadyAskedQuestions[q])
+    let initializer: ClientInfo;
+    let currentClient: ClientInfo;
 
     //Simplest to implement -> just return the current state
     let getState = () => {
@@ -46,18 +25,13 @@
     }
 
     let onClientHasJoined = (client: ClientInfo) => {        
-        allClients[client.clientUuid] = client;
+        //Ignore
     }
 
     let onClientHasLeft = (clientUuid: string) => {
-        delete allClients[clientUuid];
-    }
-
-    let addAnswer = (question: string, answeredByClientUuid: string, answer: string) => {
-        if(!state.alreadyAskedQuestions[question]) {
-            state.alreadyAskedQuestions[question] = {};
+        if (clientUuid === initializer.clientUuid) {
+            kosyApi.stopApp();
         }
-        state.alreadyAskedQuestions[question][answeredByClientUuid] = answer;
     }
 
     //Process the message that was sent via the kosy network
@@ -66,28 +40,51 @@
         switch (message.type) {
             case "question-asked":
                 state = {
-                    alreadyAskedQuestions: { ...state.alreadyAskedQuestions, [message.payload]: {} },
-                    currentQuestion: message.payload
+                    alreadyAskedQuestionsIndexes: state.alreadyAskedQuestionsIndexes.add(message.index),
+                    currentQuestionIndex: message.index
                 }
                 break;
-            case "question-answered":
-                addAnswer(state.currentQuestion, message.payload.answeredByClientUuid, message.payload.answer);
-                break;
+            case "reset-questions":
+                state = {
+                    alreadyAskedQuestionsIndexes: new Set([ message.index ]),
+                    currentQuestionIndex: message.index
+                }
             default:
                 break;
         }
     }
     
     let askNextQuestion = () => {
+        //Filters out the already asked questions and makes sure to preserve the original question's index
+        let questionsToAsk = questions.map((q, index) => { return { index: index } }).filter((q, index) => !state.alreadyAskedQuestionsIndexes.has(index));
+        //Random next question
         let nextQuestion = questionsToAsk[Math.floor(Math.random() * questionsToAsk.length)];
+        //Update the state beforehand => it will be updated again after the message comes in from kosy, but alreadyAskedQuestionsIndexes is a Set, so it shouldn't make a difference
         state = {
-            alreadyAskedQuestions: { ...state.alreadyAskedQuestions, nextQuestion: {} },
-            currentQuestion: state.currentQuestion
+            alreadyAskedQuestionsIndexes: state.alreadyAskedQuestionsIndexes.add(nextQuestion.index),
+            currentQuestionIndex: nextQuestion.index
         }
+        //Relay "A question was asked" to all Kosy clients
         kosyApi.relayMessage({
             type: "question-asked",
-            payload: nextQuestion
+            index: nextQuestion.index
         });
+    }
+
+    let resetQuestions = () => {
+        let nextQuestionIndex = Math.floor(Math.random() * questions.length);
+        state = {
+            alreadyAskedQuestionsIndexes: new Set([ nextQuestionIndex ]),
+            currentQuestionIndex: nextQuestionIndex
+        }
+        kosyApi.relayMessage({
+            type: "reset-questions",
+            index: nextQuestionIndex
+        });
+    }
+
+    let closeApp = () => {
+        kosyApi.stopApp();
     }
 
     const kosyApi = new KosyApi<AppState, AppMessage>({
@@ -99,9 +96,8 @@
     });
 
     kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
-        initializerUuid = initialInfo.initializerClientUuid;
-        currentClientUuid = initialInfo.currentClientUuid;
-        allClients = initialInfo.clients;
+        initializer = initialInfo.clients[initialInfo.initializerClientUuid];
+        currentClient = initialInfo.clients[initialInfo.currentClientUuid];
         if (initialInfo.currentAppState) {
             state = initialInfo.currentAppState;
         }
@@ -109,48 +105,59 @@
             askNextQuestion();
         }
     });
-
-    let selectAnswer = (answer: string) => {
-        addAnswer(state.currentQuestion, currentClientUuid, answer);
-        kosyApi.relayMessage({ 
-            type: "question-answered", 
-            payload: {
-                question: state.currentQuestion,
-                answeredByClientUuid: currentClientUuid, 
-                answer: answer
-            }
-        });
-    }
 </script>
 
-{#if state.currentQuestion && initializerUuid && currentClientUuid}
-    <h1>{ state.currentQuestion }</h1>
-    {#if state.alreadyAskedQuestions[state.currentQuestion] && state.alreadyAskedQuestions[state.currentQuestion][currentClientUuid]}
-        <p>Your answer: {state.alreadyAskedQuestions[state.currentQuestion][currentClientUuid]}</p>
-        <hr />
-        {#each allClientsArray as client}
-            {#if client.clientUuid !== currentClientUuid}
-                {#if state.alreadyAskedQuestions[state.currentQuestion][client.clientUuid]}
-                    <p>{client.clientName} answered: {state.alreadyAskedQuestions[state.currentQuestion][client.clientUuid]}</p>
-                {:else}
-                    <p>{client.clientName} hasn't answered yet.</p>
-                {/if}
+<style lang="scss" global>
+    main {        
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0px;
+        margin-left: 70px;
+        height: 100vh;
+
+        h1 {
+            max-width: 400px;
+        }
+    }
+
+    #drums {
+        position: absolute;
+        right: 30px;
+        bottom: 39px;
+        width: 260px;
+        height: 260px;
+    }
+</style>
+
+<main>
+    {#if (state.currentQuestionIndex === 0 || state.currentQuestionIndex > 0) && initializer && currentClient}
+        {#if state.alreadyAskedQuestionsIndexes.size === questions.length}
+            <h1>Wow! You've answered all of the questions!</h1>
+            {#if initializer.clientUuid == currentClient.clientUuid}
+                <ButtonGroup>
+                    <Button importance="primary" on:click={() => resetQuestions()}>
+                        <span class="text">Restart</span>
+                    </Button>
+                    <Button importance="secondary" on:click={() => closeApp()}>
+                        <span class="text">Close app</span>
+                    </Button>
+                </ButtonGroup>
             {/if}
-        {/each}
-    {:else}
-        <h3>Pick an answer:</h3>
-        {#each possibleAnswers as answer}
-            <button on:click={() => selectAnswer(answer)}>{answer}</button>
-        {/each}
-    {/if}
-    {#if initializerUuid == currentClientUuid}
-        <hr />
-        {#if questionsToAsk.length === 0}
-            <p>There are no more questions</p>
         {:else}
-            <button on:click={() => askNextQuestion()}>Next question</button>
+            <h1>{ questions[state.currentQuestionIndex] }</h1>
+            {#if initializer.clientUuid == currentClient.clientUuid}
+                <Button importance="primary" on:click={() => askNextQuestion()}>
+                    <span class="text">Next question</span>
+                </Button>
+            {/if}
         {/if}
+        {#if initializer.clientUuid !== currentClient.clientUuid}
+            <p>{initializer.clientName} is the host</p>
+        {/if}
+        <img id="drums" src="assets/drum.svg" alt="Drum icon" />
+    {:else}
+        <p></p>
     {/if}
-{:else}
-    <p></p>
-{/if}
+</main>

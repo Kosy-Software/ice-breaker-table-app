@@ -1,18 +1,14 @@
 /// Messages that are relayed to all of the clients
 export type AppMessage =
     | QuestionAsked
-    | QuestionAnswered
+    | ResetQuestions
 
 export interface QuestionAsked {
     type: "question-asked";
-    payload: string;
+    index: number;
 }
 
-export interface QuestionAnswered {
-    type: "question-answered";
-    payload: {
-        question: string;
-        answeredByClientUuid: string;
-        answer: string;
-    }
+export interface ResetQuestions {
+    type: "reset-questions";
+    index: number;
 }
