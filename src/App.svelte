@@ -4,8 +4,8 @@
     import type { AppState } from "./lib/appState";
     import { KosyApi } from "@kosy/kosy-app-api";
     import { questions } from "./lib/questions";
-import Button from "./components/Button.svelte";
-import ButtonGroup from "./components/ButtonGroup.svelte";
+    import Button from "@kosy/kosy-svelte-components/Button.svelte";
+    import ButtonGroup from "./components/ButtonGroup.svelte";
    
     let state: AppState = {
         alreadyAskedQuestionsIndexes: new Set<number>(),
