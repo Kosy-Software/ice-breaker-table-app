@@ -25,7 +25,6 @@
         text-align: center;
         border-radius: 100px;
         border: none;
-        cursor: pointer;
         box-sizing: border-box;
         display: block;
         font-family: "Inter", sans-serif;
@@ -33,6 +32,12 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+        cursor: pointer;
+        
+        &:disabled {
+            cursor: not-allowed;
+        }
+
         &.size-regular {
             height: 52px;
             line-height: 44px;
@@ -78,7 +83,7 @@
             &:hover {
                 background: colors.$color-grey-light;
             }
-            &.disabled {
+            &:disabled {
                 background: colors.$color-grey-default;
                 color: white;
             }
@@ -89,7 +94,7 @@
             &:hover {
                 background: colors.$color-primary-dark;
             }
-            &.disabled {
+            &:disabled {
                 background: colors.$color-grey-default;
             }
         }
@@ -107,7 +112,7 @@
             &:active {
                 background: colors.$color-grey-border; // good job, Robin! <3
             }
-            &.disabled {
+            &:disabled {
                 color: colors.$color-grey-default;
                 border-color: colors.$color-grey-default;
             }
@@ -130,7 +135,7 @@
         }
         .icon-left,
         .icon-right {
-            vertical-align: bottom;
+            vertical-align: middle;
             &:only-child {
                 padding: 0;
             }
@@ -143,6 +148,12 @@
             &:last-child {
                 padding-right: 20px;
             }
+        }
+        .icon-left + .text {
+            padding: 0 4px;
+        }
+        .text + .icon-right {
+            margin-left: -4px;
         }
     }
 </style>
