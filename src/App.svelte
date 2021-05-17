@@ -108,6 +108,8 @@
 </script>
 
 <style lang="scss" global>
+    @use "./styles/_colors.scss" as colors;
+
     main {        
         display: flex;
         flex-direction: column;
@@ -119,6 +121,15 @@
 
         h1 {
             max-width: 400px;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        p {
+            margin: 0;
+            font-weight: 500;
+            line-height: 17px;
+            color: colors.$color-grey-dark
         }
     }
 
@@ -136,6 +147,7 @@
         {#if state.alreadyAskedQuestionsIndexes.size === questions.length}
             <h1>Wow! You've answered all of the questions!</h1>
             {#if initializer.clientUuid == currentClient.clientUuid}
+                <div class="gap"></div>
                 <ButtonGroup>
                     <Button importance="primary" on:click={() => resetQuestions()}>
                         <span class="text">Restart</span>
@@ -148,12 +160,14 @@
         {:else}
             <h1>{ questions[state.currentQuestionIndex] }</h1>
             {#if initializer.clientUuid == currentClient.clientUuid}
+                <div class="gap"></div>
                 <Button importance="primary" on:click={() => askNextQuestion()}>
                     <span class="text">Next question</span>
                 </Button>
             {/if}
         {/if}
         {#if initializer.clientUuid !== currentClient.clientUuid}
+            <div class="gap-sm"></div>
             <p>{initializer.clientName} is the host</p>
         {/if}
         <img id="drums" src="assets/drum.svg" alt="Drum icon" />
