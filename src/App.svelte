@@ -87,10 +87,12 @@
         kosyApi.stopApp();
     }
 
-    const kosyApi = new KosyApi<AppState, AppMessage>({
+    const kosyApi = new KosyApi<AppState, AppMessage, AppMessage>({
         onClientHasJoined: (client) => onClientHasJoined(client),
         onClientHasLeft: (clientUuid) => onClientHasLeft(clientUuid),
-        onReceiveMessage: (message) => { processMessage(message) },
+        //No need to deny or change the message in any way -> forward to all clients
+        onReceiveMessageAsHost: (message) => message,
+        onReceiveMessageAsClient: (message) => { processMessage(message) },
         onRequestState: () => getState(),
         onProvideState: (newState: AppState) => setState(newState)
     });

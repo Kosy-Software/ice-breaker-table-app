@@ -94,7 +94,7 @@ export const questions: string[] = [
     "What is your favorite musical instrument and why?",
     "Are you a cat person or a dog person?",
     "What languages do you know how to speak?",
-    "Popcorn or M&amp;Ms?",
+    "Popcorn or M&Ms?",
     "What’s the weirdest food you’ve ever eaten?",
     "What’s the most out-of-character thing you’ve ever done?",
     "What is your cellphone wallpaper?",
