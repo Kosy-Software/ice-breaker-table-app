@@ -104,6 +104,7 @@
     });
 
     let loadPromise = kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
+        clients = initialInfo.clients;
         appHostClientUuid = initialInfo.initializerClientUuid;
         kosyHostClientUuid = appHostClientUuid;
         currentClientUuid = initialInfo.currentClientUuid;
