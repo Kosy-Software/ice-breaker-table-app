@@ -13,8 +13,10 @@
     };
 
     $: alreadyAskedQuestionIndexesSet = new Set(state.alreadyAskedQuestionsIndexes)
-    let initializer: ClientInfo;
-    let currentClient: ClientInfo;
+    let clients: { [clientUuid: string]: ClientInfo };
+    let appHostClientUuid: string;
+    let kosyHostClientUuid: string;
+    let currentClientUuid: string;
 
     //Simplest to implement -> just return the current state
     let getState = () => {
@@ -27,13 +29,21 @@
         }
     }
 
-    let onClientHasJoined = (client: ClientInfo) => {        
-        //Ignore
+    let onClientHasJoined = (client: ClientInfo) => {
+        clients[client.clientUuid] = client;
     }
 
     let onClientHasLeft = (clientUuid: string) => {
-        if (clientUuid === initializer.clientUuid) {
-            kosyApi.stopApp();
+        if (clientUuid === appHostClientUuid) {
+            appHostClientUuid = kosyHostClientUuid;
+        }
+        clients[clientUuid] = undefined; 
+    }
+
+    let onHostHasChanged = (clientUuid: string) => {
+        kosyHostClientUuid = clientUuid;
+        if (!clients[appHostClientUuid]) {
+            appHostClientUuid = clientUuid;
         }
     }
 
@@ -85,6 +95,7 @@
     const kosyApi = new KosyApi<AppState, AppMessage, AppMessage>({
         onClientHasJoined: (client) => onClientHasJoined(client),
         onClientHasLeft: (clientUuid) => onClientHasLeft(clientUuid),
+        onHostHasChanged: (clientUuid) => onHostHasChanged(clientUuid),
         //No need to deny or change the message in any way -> forward to all clients
         onReceiveMessageAsHost: (message) => message,
         onReceiveMessageAsClient: (message) => { processMessage(message) },
@@ -93,8 +104,9 @@
     });
 
     kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
-        initializer = initialInfo.clients[initialInfo.initializerClientUuid];
-        currentClient = initialInfo.clients[initialInfo.currentClientUuid];
+        appHostClientUuid = initialInfo.initializerClientUuid;
+        kosyHostClientUuid = appHostClientUuid;
+        currentClientUuid = initialInfo.currentClientUuid;
         if (initialInfo.currentAppState) {
             state = initialInfo.currentAppState;
         }
@@ -140,10 +152,10 @@
 </style>
 
 <main>
-    {#if (state.currentQuestionIndex === 0 || state.currentQuestionIndex > 0) && initializer && currentClient}
+    {#if (state.currentQuestionIndex === 0 || state.currentQuestionIndex > 0) && clients[appHostClientUuid] && clients[currentClientUuid]}
         {#if state.alreadyAskedQuestionsIndexes.length === questions.length}
             <h1>Wow! You've answered all of the questions!</h1>
-            {#if initializer.clientUuid == currentClient.clientUuid}
+            {#if appHostClientUuid == currentClientUuid}
                 <div class="gap"></div>
                 <ButtonGroup>
                     <Button importance="primary" on:click={() => resetQuestions()}>
@@ -156,16 +168,16 @@
             {/if}
         {:else}
             <h1>{ questions[state.currentQuestionIndex] }</h1>
-            {#if initializer.clientUuid == currentClient.clientUuid}
+            {#if appHostClientUuid == currentClientUuid}
                 <div class="gap"></div>
                 <Button importance="primary" on:click={() => askNextQuestion()}>
                     <span class="text">Next question</span>
                 </Button>
             {/if}
         {/if}
-        {#if initializer.clientUuid !== currentClient.clientUuid}
+        {#if appHostClientUuid !== currentClientUuid}
             <div class="gap-sm"></div>
-            <p>{initializer.clientName} is the host</p>
+            <p>{clients[appHostClientUuid].clientName} is the host</p>
         {/if}
         <img id="drums" src="assets/drum.svg" alt="Drum icon" />
     {:else}
