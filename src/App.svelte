@@ -103,7 +103,7 @@
         onProvideState: (newState: AppState) => setState(newState)
     });
 
-    kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
+    let loadPromise = kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
         appHostClientUuid = initialInfo.initializerClientUuid;
         kosyHostClientUuid = appHostClientUuid;
         currentClientUuid = initialInfo.currentClientUuid;
@@ -152,7 +152,7 @@
 </style>
 
 <main>
-    {#if (state.currentQuestionIndex === 0 || state.currentQuestionIndex > 0) && clients[appHostClientUuid] && clients[currentClientUuid]}
+    {#await loadPromise then _data }
         {#if state.alreadyAskedQuestionsIndexes.length === questions.length}
             <h1>Wow! You've answered all of the questions!</h1>
             {#if appHostClientUuid == currentClientUuid}
@@ -177,10 +177,8 @@
         {/if}
         {#if appHostClientUuid !== currentClientUuid}
             <div class="gap-sm"></div>
-            <p>{clients[appHostClientUuid].clientName} is the host</p>
+            <p>{clients[appHostClientUuid]?.clientName} is the host</p>
         {/if}
         <img id="drums" src="assets/drum.svg" alt="Drum icon" />
-    {:else}
-        <p></p>
-    {/if}
+    {/await}
 </main>
