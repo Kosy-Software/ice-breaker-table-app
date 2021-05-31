@@ -8,7 +8,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@kosy/kosy-app-api": "^0.3.5",
+    "@kosy/kosy-app-api": "^0.3.6",
     "@kosy/kosy-svelte-components": "^0.1.7",
     "@tsconfig/svelte": "^1.0.10"
   },
