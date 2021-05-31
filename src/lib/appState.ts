@@ -1,4 +1,4 @@
 export interface AppState {
-    alreadyAskedQuestionsIndexes: Set<number>;
+    alreadyAskedQuestionsIndexes: Array<number>;
     currentQuestionIndex: number;
 }

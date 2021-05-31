@@ -840,10 +840,10 @@
   resolved "https://registry.yarnpkg.com/@kosy/kosy-app-api/-/kosy-app-api-0.3.3.tgz#45e00809b1ceffe44a9dd19b3d50b5dde74f8c11"
   integrity sha512-MNW3iXMfy5QLtvLZAz9nNz/fROOfhifl+/NhbcEyD6EjzzA2aIDg8MMrfaKIHG6dX0UFVXx3+drHCOPb2aJnyA==
 
-"@kosy/kosy-svelte-components@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@kosy/kosy-svelte-components/-/kosy-svelte-components-0.1.6.tgz#a13404a29826db8e8065155d09cbf5f481781632"
-  integrity sha512-MQra/DHYfjE5EP9gfzKsAETqBN8twBgzFWcTjH+iKJNCS/m6IfeDqGRz8diHqLMqS8JvN672+1f2/SNUP0Pg+Q==
+"@kosy/kosy-svelte-components@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@kosy/kosy-svelte-components/-/kosy-svelte-components-0.1.7.tgz#cc48ae4dae033d56a6af68f29162db44a3860ee3"
+  integrity sha512-Ca1M8A4wWBSw0Q7KckLO+oj1dN00VvsfM9RWXrojnwB9+EGdbKpDyq1KvzJRgh7vsIOHmWrG4y6ESkU/LyUVYQ==
 
 "@nodelib/fs.scandir@2.1.4":
   version "2.1.4"

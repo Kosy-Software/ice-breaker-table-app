@@ -8,10 +8,11 @@
     import ButtonGroup from "./components/ButtonGroup.svelte";
    
     let state: AppState = {
-        alreadyAskedQuestionsIndexes: new Set<number>(),
+        alreadyAskedQuestionsIndexes: [],
         currentQuestionIndex: undefined
     };
 
+    $: alreadyAskedQuestionIndexesSet = new Set(state.alreadyAskedQuestionsIndexes)
     let initializer: ClientInfo;
     let currentClient: ClientInfo;
 
@@ -21,7 +22,9 @@
     }
 
     let setState = (newState: AppState) => {
-        state = newState ?? state;
+        if (newState?.alreadyAskedQuestionsIndexes) {
+            state = newState;
+        }
     }
 
     let onClientHasJoined = (client: ClientInfo) => {        
@@ -40,13 +43,13 @@
         switch (message.type) {
             case "question-asked":
                 state = {
-                    alreadyAskedQuestionsIndexes: state.alreadyAskedQuestionsIndexes.add(message.index),
+                    alreadyAskedQuestionsIndexes: [ ...state.alreadyAskedQuestionsIndexes, message.index ],
                     currentQuestionIndex: message.index
                 }
                 break;
             case "reset-questions":
                 state = {
-                    alreadyAskedQuestionsIndexes: new Set([ message.index ]),
+                    alreadyAskedQuestionsIndexes: [ message.index ],
                     currentQuestionIndex: message.index
                 }
             default:
@@ -56,14 +59,9 @@
     
     let askNextQuestion = () => {
         //Filters out the already asked questions and makes sure to preserve the original question's index
-        let questionsToAsk = questions.map((q, index) => { return { index: index } }).filter((q, index) => !state.alreadyAskedQuestionsIndexes.has(index));
+        let questionsToAsk = questions.map((q, index) => { return { index: index } }).filter((q, index) => !alreadyAskedQuestionIndexesSet.has(index));
         //Random next question
         let nextQuestion = questionsToAsk[Math.floor(Math.random() * questionsToAsk.length)];
-        //Update the state beforehand => it will be updated again after the message comes in from kosy, but alreadyAskedQuestionsIndexes is a Set, so it shouldn't make a difference
-        state = {
-            alreadyAskedQuestionsIndexes: state.alreadyAskedQuestionsIndexes.add(nextQuestion.index),
-            currentQuestionIndex: nextQuestion.index
-        }
         //Relay "A question was asked" to all Kosy clients
         kosyApi.relayMessage({
             type: "question-asked",
@@ -71,12 +69,9 @@
         });
     }
 
+    //Resets the questions and immediately asks a random question
     let resetQuestions = () => {
         let nextQuestionIndex = Math.floor(Math.random() * questions.length);
-        state = {
-            alreadyAskedQuestionsIndexes: new Set([ nextQuestionIndex ]),
-            currentQuestionIndex: nextQuestionIndex
-        }
         kosyApi.relayMessage({
             type: "reset-questions",
             index: nextQuestionIndex
