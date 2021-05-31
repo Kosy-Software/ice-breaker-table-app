@@ -141,7 +141,7 @@
 
 <main>
     {#if (state.currentQuestionIndex === 0 || state.currentQuestionIndex > 0) && initializer && currentClient}
-        {#if state.alreadyAskedQuestionsIndexes.size === questions.length}
+        {#if state.alreadyAskedQuestionsIndexes.length === questions.length}
             <h1>Wow! You've answered all of the questions!</h1>
             {#if initializer.clientUuid == currentClient.clientUuid}
                 <div class="gap"></div>
