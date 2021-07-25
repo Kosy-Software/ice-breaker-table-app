@@ -68,7 +68,8 @@ const getPlugins = (isProduction) => {
             }),
             new CopyWebpackPlugin({
                 patterns: [
-                    { from: "./src/assets", to: "./assets" }
+                    { from: "./src/assets", to: "./assets" },
+					{ from: "./icon.png", to: "icon.png" }
                 ]
             })
         ];
