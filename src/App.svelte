@@ -9,6 +9,7 @@
     import Game from "./components/Game.svelte";
     import PickQuestionPack from "./components/PickQuestionPack.svelte";
     import Loading from "./components/Loading.svelte";
+    import Waiting from "./components/Waiting.svelte";
 
     //Simplest to implement -> just return the current state
     let getState = () => {
@@ -172,7 +173,11 @@
         {#if $state.type === "game"}
             <Game state={$state} on:message={(e) => processClientMessage(e.detail)}></Game>
         {:else if ($state.type === "pickQuestionPack")}
-            <PickQuestionPack on:message={(e) => processClientMessage(e.detail)}></PickQuestionPack>
+            {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
+                <PickQuestionPack on:message={(e) => processClientMessage(e.detail)}></PickQuestionPack>
+            {:else}
+                <Waiting userName={$clientState.clients[$clientState.appHostClientUuid].clientName}></Waiting>
+            {/if}
         {/if}
     {/await}
 </main>
