@@ -5,3 +5,4 @@ settings.json
 /ssl
 /dist
 /src/**/**.js
+*.log

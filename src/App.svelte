@@ -1,98 +1,73 @@
-<script type="ts">
+<script lang="ts">
     import type { ClientInfo, InitialInfo } from "@kosy/kosy-app-api/types";
-    import type { AppMessage } from "./lib/appMessages";
-    import type { AppState } from "./lib/appState";
     import { KosyApi } from "@kosy/kosy-app-api";
-    import { questions } from "./lib/questions";
-    import Button from "@kosy/kosy-svelte-components/Button.svelte";
-    import ButtonGroup from "./components/ButtonGroup.svelte";
-   
-    let state: AppState = {
-        alreadyAskedQuestionsIndexes: [],
-        currentQuestionIndex: undefined
-    };
-
-    $: alreadyAskedQuestionIndexesSet = new Set(state.alreadyAskedQuestionsIndexes)
-    let clients: { [clientUuid: string]: ClientInfo };
-    let appHostClientUuid: string;
-    let kosyHostClientUuid: string;
-    let currentClientUuid: string;
+    import type { AppEvent } from "./lib/appEvents";
+    import type { AppState } from "./lib/appState";
+    import { state } from "./lib/appStateStore";
+    import { clientState } from "./lib/clientStore";
+    import type { ClientEvent } from "./lib/clientEvents";
+    import Game from "./components/Game.svelte";
+    import PickQuestionPack from "./components/PickQuestionPack.svelte";
+    import Loading from "./components/Loading.svelte";
 
     //Simplest to implement -> just return the current state
     let getState = () => {
-        return state;
+        return $state;
     }
 
     let setState = (newState: AppState) => {
-        if (newState?.alreadyAskedQuestionsIndexes) {
-            state = newState;
-        }
+        state.set(newState);
     }
 
     let onClientHasJoined = (client: ClientInfo) => {
-        clients[client.clientUuid] = client;
+        clientState.set({ ...$clientState, clients: { ...$clientState.clients, [client.clientUuid]: client } });
     }
 
-    let onClientHasLeft = (clientUuid: string) => {
-        if (clientUuid === appHostClientUuid) {
-            appHostClientUuid = kosyHostClientUuid;
+    let onClientHasLeft = (clientUuid: string) => {        
+        if (clientUuid === $clientState.appHostClientUuid) {
+            clientState.set({ ...$clientState, appHostClientUuid: $clientState.kosyHostClientUuid });
         }
-        clients[clientUuid] = undefined; 
+        clientState.set({ ...$clientState, clients: { ...$clientState.clients, [clientUuid]: undefined } });
     }
 
     let onHostHasChanged = (clientUuid: string) => {
-        kosyHostClientUuid = clientUuid;
-        if (!clients[appHostClientUuid]) {
-            appHostClientUuid = clientUuid;
+        clientState.set({ ...$clientState, kosyHostClientUuid: clientUuid });
+        if (!$clientState.clients[$clientState.appHostClientUuid]) {
+            clientState.set({ ...$clientState, appHostClientUuid: clientUuid });
         }
     }
 
     //Process the message that was sent via the kosy network
-    let processMessage = async (message: AppMessage) => {
+    let processMessage = async (message: AppEvent) => {
         console.log("Received a message from Kosy: ", message);
         switch (message.type) {
             case "question-asked":
-                state = {
-                    alreadyAskedQuestionsIndexes: [ ...state.alreadyAskedQuestionsIndexes, message.index ],
-                    currentQuestionIndex: message.index
-                }
+                state.set({
+                    type: "game",
+                    questionPackId: message.questionPackId,
+                    alreadyAskedQuestionsIdxs: message.previousQuestionIdxs,
+                    currentQuestionIdx: message.currentQuestionIdx
+                });
                 break;
-            case "reset-questions":
-                state = {
-                    alreadyAskedQuestionsIndexes: [ message.index ],
-                    currentQuestionIndex: message.index
-                }
+            case "questions-reset":
+                state.set({
+                    type: "game",
+                    questionPackId: message.questionPackId,
+                    alreadyAskedQuestionsIdxs: [],
+                    currentQuestionIdx: message.currentQuestionIdx
+                });
+                break;
+            case "pick-question-pack-requested":
+                state.set({
+                    type: "pickQuestionPack"
+                });
+                break;
             default:
                 break;
         }
     }
     
-    let askNextQuestion = () => {
-        //Filters out the already asked questions and makes sure to preserve the original question's index
-        let questionsToAsk = questions.map((q, index) => { return { index: index } }).filter((q, index) => !alreadyAskedQuestionIndexesSet.has(index));
-        //Random next question
-        let nextQuestion = questionsToAsk[Math.floor(Math.random() * questionsToAsk.length)];
-        //Relay "A question was asked" to all Kosy clients
-        kosyApi.relayMessage({
-            type: "question-asked",
-            index: nextQuestion.index
-        });
-    }
-
-    //Resets the questions and immediately asks a random question
-    let resetQuestions = () => {
-        let nextQuestionIndex = Math.floor(Math.random() * questions.length);
-        kosyApi.relayMessage({
-            type: "reset-questions",
-            index: nextQuestionIndex
-        });
-    }
-
-    let closeApp = () => {
-        kosyApi.stopApp();
-    }
-
-    const kosyApi = new KosyApi<AppState, AppMessage, AppMessage>({
+    const kosyApi = new KosyApi<AppState, AppEvent, AppEvent>({
         onClientHasJoined: (client) => onClientHasJoined(client),
         onClientHasLeft: (clientUuid) => onClientHasLeft(clientUuid),
         onHostHasChanged: (clientUuid) => onHostHasChanged(clientUuid),
@@ -103,17 +78,61 @@
         onProvideState: (newState: AppState) => setState(newState)
     });
 
-    let loadPromise = kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
-        clients = initialInfo.clients;
-        appHostClientUuid = initialInfo.initializerClientUuid;
-        kosyHostClientUuid = appHostClientUuid;
-        currentClientUuid = initialInfo.currentClientUuid;
+    let processClientMessage = (msg: ClientEvent) => {
+        switch (msg.type) {
+            case "nextQuestionAsked":         
+                kosyApi.relayMessage({
+                    type: "question-asked",
+                    questionPackId: msg.questionPackId,
+                    previousQuestionIdxs: msg.previousQuestionIdxs,
+                    currentQuestionIdx: msg.nextQuestionIdx
+                });
+                break;
+            case "questionsReset":
+                kosyApi.relayMessage({
+                    type: "questions-reset",
+                    questionPackId: msg.questionPackId,
+                    currentQuestionIdx: msg.nextQuestionIdx
+                });
+                break;
+            case "appClosed":
+                kosyApi.stopApp();
+                break;
+            case "questionPackPicked":
+                kosyApi.relayMessage({
+                    type: "question-asked",
+                    questionPackId: msg.questionPackId,
+                    previousQuestionIdxs: [],
+                    currentQuestionIdx: msg.nextQuestionIdx
+                });
+                break;
+            case "anotherQuestionPackRequested":
+                kosyApi.relayMessage({
+                    type: "pick-question-pack-requested"
+                });
+                break;
+            default:
+                break;
+        }
+    };
+
+    let loadInfo = kosyApi.startApp().then((initialInfo: InitialInfo<AppState>) => {
+        clientState.set({ 
+            clients: initialInfo.clients,
+            appHostClientUuid: initialInfo.initializerClientUuid,
+            kosyHostClientUuid: initialInfo.initializerClientUuid,
+            currentClientUuid: initialInfo.currentClientUuid 
+        });
         if (initialInfo.currentAppState) {
-            state = initialInfo.currentAppState;
+            state.set(initialInfo.currentAppState)
+        } else {
+            state.set({ type: "pickQuestionPack" });
         }
-        if (initialInfo.initializerClientUuid == initialInfo.currentClientUuid) {
-            askNextQuestion();
-        }
+    });
+
+    //Times out after 3 seconds to show a loading screen if necessary
+    let showLoadingPromise: Promise<void> = new Promise((resolve, _reject) => {
+        setTimeout(() => { resolve(); }, 3000);
     });
 </script>
 
@@ -139,47 +158,21 @@
             margin: 0;
             font-weight: 500;
             line-height: 17px;
-            color: colors.$color-grey-dark
+            color: colors.$color-grey-dark;
         }
-    }
-
-    #drums {
-        position: absolute;
-        right: 30px;
-        bottom: 39px;
-        width: 260px;
-        height: 260px;
     }
 </style>
 
 <main>
-    {#await loadPromise then _data }
-        {#if state.alreadyAskedQuestionsIndexes.length === questions.length}
-            <h1>Wow! You've answered all of the questions!</h1>
-            {#if appHostClientUuid == currentClientUuid}
-                <div class="gap"></div>
-                <ButtonGroup>
-                    <Button importance="primary" on:click={() => resetQuestions()}>
-                        <span class="text">Restart</span>
-                    </Button>
-                    <Button importance="secondary" on:click={() => closeApp()}>
-                        <span class="text">Close app</span>
-                    </Button>
-                </ButtonGroup>
-            {/if}
-        {:else}
-            <h1>{ questions[state.currentQuestionIndex] }</h1>
-            {#if appHostClientUuid == currentClientUuid}
-                <div class="gap"></div>
-                <Button importance="primary" on:click={() => askNextQuestion()}>
-                    <span class="text">Next question</span>
-                </Button>
-            {/if}
+    {#await loadInfo}
+        {#await showLoadingPromise then _data}
+            <Loading msg="Loading icebreaker app"></Loading>
+        {/await}
+    {:then _data}
+        {#if $state.type === "game"}
+            <Game state={$state} on:message={(e) => processClientMessage(e.detail)}></Game>
+        {:else if ($state.type === "pickQuestionPack")}
+            <PickQuestionPack on:message={(e) => processClientMessage(e.detail)}></PickQuestionPack>
         {/if}
-        {#if appHostClientUuid !== currentClientUuid}
-            <div class="gap-sm"></div>
-            <p>{clients[appHostClientUuid]?.clientName} is the host</p>
-        {/if}
-        <img id="drums" src="assets/drum.svg" alt="Drum icon" />
     {/await}
 </main>
