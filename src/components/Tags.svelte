@@ -10,6 +10,13 @@
         &:not(:last-child) {
             margin-right: 5px;
         }
+
+        background-color: coral;
+        border-radius: 5px;
+        border-color: black;
+        border-width: 1px;
+        font-size: small;
+        padding: 3px;
     }
 </style>
 

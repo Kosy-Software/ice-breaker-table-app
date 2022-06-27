@@ -23,6 +23,12 @@
     });
 </script>
 
+<style lang="scss">
+    li {
+        margin: 5px 0px;
+    }
+</style>
+
 {#await questionPackPromise}
     {#await showLoadingPromise then _data}
         <Loading msg="Loading question packs"></Loading>
