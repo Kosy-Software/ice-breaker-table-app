@@ -3,7 +3,7 @@ Answer questions to spark conversations
 
 ## Debugging tool
 
-https://kosy-software.github.io/kosy-debug-app/?url=https://kosy-software.github.io/ice-breaker-table-app/
+https://kosy-software.github.io/kosy-debug-app/?url=https://kosy-software.github.io/ice-breaker-table-app/&large=1
 
 ## Create a settings file
 
