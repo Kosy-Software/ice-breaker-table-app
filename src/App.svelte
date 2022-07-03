@@ -138,29 +138,15 @@
 </script>
 
 <style lang="scss" global>
-    @use "./styles/_colors.scss" as colors;
+    @use "styles/_colors.scss" as colors;
 
-    main {        
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 0px;
-        margin-left: 70px;
-        height: 100vh;
-
-        h1 {
-            max-width: 400px;
-            margin: 0;
-            font-size: 24px;
-        }
-
-        p {
-            margin: 0;
-            font-weight: 500;
-            line-height: 17px;
-            color: colors.$color-grey-dark;
-        }
+    main {
+        position: absolute;
+        left: 0%;
+        right: 0%;
+        top: 0%;
+        bottom: 0%;
+        padding: 40px;
     }
 </style>
 

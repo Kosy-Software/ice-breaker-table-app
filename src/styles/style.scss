@@ -1,24 +1,33 @@
 @use "_colors.scss" as colors;
 
-body {
-    background-color: #ffffff;
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.02em;
-    font-size: 14px;
-    color: colors.$color-black-bluish;
-}
-
-h1, h2, h3, h4, h5 {
-    font-family: 'Poppins', sans-serif;
-}
-
 .gap {
     height: 32px;
 }
 
 .gap-sm {
     height: 12px;
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    color: colors.$color-grey-lighter;
+}
+
+h5 {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: colors.$color-grey-darkish;
+    letter-spacing: -0.02em;
+    background: colors.$color-black-dark;
 }

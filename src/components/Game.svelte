@@ -45,44 +45,74 @@
 </script>
 
 <style lang="scss">
+    @use "../styles/_colors.scss" as colors;
+
     #drums {
         position: absolute;
         right: 30px;
         bottom: 39px;
         width: 260px;
         height: 260px;
+        pointer-events: none;
+    }
+
+    .game {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0px;
+        margin-left: 70px;
+        height: 100%;
+
+        h1 {
+            max-width: 400px;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        p {
+            margin: 0;
+            font-weight: 500;
+            line-height: 17px;
+            color: colors.$color-grey-dark;
+        }
     }
 </style>
 
-{#await $questionPack then qPack }
-    {#if state.currentQuestionIdx !== 0 && !state.currentQuestionIdx}
-        <h1>Wow! You've answered all of the questions!</h1>
-        {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
-            <div class="gap"></div>
-            <ButtonGroup>
-                <Button importance="primary" on:click={() => resetQuestions(qPack)}>
-                    <span class="text">Restart</span>
-                </Button>
-                <Button importance="primary" on:click={() => pickAnotherQuestionPack()}>
-                    <span class="text">Pick another question pack</span>
-                </Button>
-                <Button importance="secondary" on:click={() => closeApp()}>
-                    <span class="text">Close app</span>
-                </Button>
-            </ButtonGroup>
+<div class="game">
+    {#await $questionPack then qPack }
+        {#if state.currentQuestionIdx !== 0 && !state.currentQuestionIdx}
+            <h1>Wow! You've answered all of the questions!</h1>
+            {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
+                <div class="gap"></div>
+                <ButtonGroup>
+                    <Button importance="primary" on:click={() => resetQuestions(qPack)}>
+                        <span class="text">Restart</span>
+                    </Button>
+                    <Button importance="secondary" on:click={() => pickAnotherQuestionPack()}>
+                        <span class="text">Pick another question pack</span>
+                    </Button>
+                    <Button importance="secondary" on:click={() => closeApp()}>
+                        <span class="text">Close app</span>
+                    </Button>
+                </ButtonGroup>
+            {/if}
+        {:else}
+            <h1>{ qPack.questions[state.currentQuestionIdx] }</h1>
+            {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
+                <div class="gap"></div>
+                <ButtonGroup>
+                    <Button importance="primary" on:click={() => askNextQuestion(qPack)}>
+                        <span class="text">Next question</span>
+                    </Button>
+                </ButtonGroup>
+            {/if}
         {/if}
-    {:else}
-        <h1>{ qPack.questions[state.currentQuestionIdx] }</h1>
-        {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
-            <div class="gap"></div>
-            <Button importance="primary" on:click={() => askNextQuestion(qPack)}>
-                <span class="text">Next question</span>
-            </Button>
+        {#if $clientState.appHostClientUuid !== $clientState.currentClientUuid}
+            <div class="gap-sm"></div>
+            <p>{$clientState.clients[$clientState.appHostClientUuid]?.clientName} is the host</p>
         {/if}
-    {/if}
-    {#if $clientState.appHostClientUuid !== $clientState.currentClientUuid}
-        <div class="gap-sm"></div>
-        <p>{$clientState.clients[$clientState.appHostClientUuid]?.clientName} is the host</p>
-    {/if}
-    <img id="drums" src="assets/drum.svg" alt="Drum icon" />    
+        <img id="drums" src="assets/drum.svg" alt="Drum icon" />    
 {/await}
+</div>
