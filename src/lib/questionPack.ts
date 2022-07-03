@@ -1,6 +1,7 @@
 export type QuestionPack = {
     id: string;
     name: string;
+    icon: string;
     isPublic: boolean;
     orderNumber: number;
     questions: string[];
@@ -9,5 +10,6 @@ export type QuestionPack = {
 export type QuestionPackListItem = {
     id: string;
     name: string;
+    icon: string;
     isPublic: boolean;
 }

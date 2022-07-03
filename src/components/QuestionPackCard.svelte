@@ -23,11 +23,11 @@
         gap: 8px;
         background: colors.$color-black-bluish;
         border-radius: 12px;
+        cursor: pointer;
     }
 
-    .question-pack-header {
-        min-width: 25.5px;
-        min-height: 25.5px;
+    .question-pack-header i {
+        font-size: 32px;
     }
 
     .question-pack-app {
@@ -40,6 +40,6 @@
 </style>
 
 <div class="question-pack" on:click={passClick}>
-    <div class="question-pack-header"></div>
+    <div class="question-pack-header"><i class="{value.icon}"></i></div>
     <div class="question-pack-app">{value.name}</div>
 </div>

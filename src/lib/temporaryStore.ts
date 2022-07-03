@@ -5,6 +5,7 @@ import type { QuestionPackListItem } from './questionPack';
 const _questionPacks: QuestionPack[] = [
     {
         id: "1",
+        icon: "far fa-face-smile",
         orderNumber: 1,
         isPublic: true,
         name: "Fun Icebreaker Questions",
@@ -17,6 +18,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "2",
+        icon: "far fa-comment-dots",
         orderNumber: 2,
         isPublic: true,
         name: "Icebreaker Questions for Work",
@@ -28,6 +30,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "3",
+        icon: "far fa-face-surprise",
         orderNumber: 3,
         isPublic: true,
         name: "Weird Icebreaker Questions",
@@ -38,6 +41,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "4",
+        icon: "far fa-sun",
         orderNumber: 4,
         isPublic: true,
         name: "Holiday Icebreaker Questions",
@@ -48,6 +52,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "5",
+        icon: "far fa-calendar",
         orderNumber: 5,
         isPublic: true,
         name: "Best Questions for Meetings",
@@ -58,6 +63,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "6",
+        icon: "far fa-face-smile",
         orderNumber: 6,
         isPublic: true,
         name: "Fun Team Icebreaker Questions",
@@ -68,6 +74,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "7",
+        icon: "far fa-comments",
         orderNumber: 7,
         isPublic: true,
         name: "Community Building Questions",
@@ -78,6 +85,7 @@ const _questionPacks: QuestionPack[] = [
     },
     {
         id: "8",
+        icon: "fas fa-fire-flame-curved",
         orderNumber: 8,
         isPublic: true,
         name: "Inappropriate Icebreakers",
