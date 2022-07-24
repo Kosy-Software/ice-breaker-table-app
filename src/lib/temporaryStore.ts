@@ -112,14 +112,8 @@ const saveQuestionPacks = (qPacks: IQuestionPack[]) => {
 }
 
 const qPacks = getQuestionPacks();
-
-console.log("Stored qPacks: ", qPacks);
 export const questionPacks = (qPacks as IQuestionPackListItem[]);
-export const fetchQuestionPack = (questionPackId: string) => {
-    var foundQPack = qPacks.filter(qp => qp.id === questionPackId)[0];
-    console.log("Found qPack:", foundQPack);
-    return foundQPack;
-}
+export const fetchQuestionPack = (questionPackId: string) => qPacks.filter(qp => qp.id === questionPackId)[0];
 export const saveQuestionPack = (questionPack: IQuestionPack) => {
     const index = qPacks.findIndex(qp => qp.id === questionPack.id);
     if (index === -1) {
