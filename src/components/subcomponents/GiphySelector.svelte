@@ -1,7 +1,7 @@
 <script lang="ts">
     //Wrapper for giphy grid
     import Button from "@kosy/kosy-svelte-components/Button.svelte";
-    import { renderGrid } from "@giphy/js-components";
+    import { renderGrid, renderGif } from "@giphy/js-components";
     import { createEventDispatcher, onMount } from "svelte";
     import { giphyFetch } from "../../lib/clientStore";
 
@@ -15,13 +15,27 @@
 
     const fetcher = $giphyFetch;
     let search = "";
-    let grid;
+    let gridComponent;
+    let gifComponent;
 
     const fetchGifs = (offset: number) => {
         if (search) {
             return fetcher.search(search, { offset, limit: 10, rating: "pg", type: "gifs" });
         }
         return fetcher.trending({ offset, limit: 10, rating: "pg", type: "gifs" });
+    }
+
+    let makeGif = async (imageId: string) => {
+        const render = async (mountNode: HTMLElement) => {
+            const { data: gif } = await fetcher.gif(imageId);
+            return renderGif({ gif, width: 300, onGifClick: (_gif, event) => { event.preventDefault(); startSelectingGif(); } }, mountNode);
+        };
+        const remove = await render(document.getElementById("gif"));
+        return {
+            remove: () => {
+                remove();
+            }
+        }
     }
 
     const makeGrid = (targetEl: HTMLElement) => {
@@ -31,11 +45,12 @@
                 fetchGifs,
                 columns: targetEl.offsetWidth < 500 ? 2 : 3,
                 gutter: 6,
-                onGifClick: (gif, event) => { 
+                onGifClick: async (gif, event) => {
                     event.preventDefault(); 
                     dispatch("giphy-selected", { id: gif.id.toString() });
-                    componentState = "showingGif";
+                    componentState = "showingGif";  
                     remove();
+                    gifComponent = await makeGif(gif.id.toString());
                 }
             },
             targetEl
@@ -65,27 +80,34 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {                                
             search = (e.target as HTMLInputElement).value;                
-            grid?.remove();
-            grid = makeGrid(document.getElementById("grid"));
+            gridComponent?.remove();
+            gridComponent = makeGrid(document.getElementById("grid"));
         }, 300);
     };
 
 
     let startSelectingGif = () => {
-        grid = makeGrid(document.getElementById("grid"));
-        componentState = "selectingGif";
+        gifComponent?.remove();
+        gridComponent = makeGrid(document.getElementById("grid"));
+        componentState = "selectingGif";        
     }
+
+    onMount(async () => {
+        if (imageId) {
+            gifComponent = await makeGif(imageId);
+        }
+    });
+    
 </script>
 
 <div>
     {#if componentState === "showingGif"}
-        {#if imageId}
-            <img src={`https://media.giphy.com/media/${imageId}/giphy.gif`} alt="Giphy gif" on:click={() => startSelectingGif()} />
-        {:else}
+        {#if !imageId}
             <Button importance="tertiary" size="small" on:click={() => startSelectingGif()}>Select a gif</Button>
         {/if}
     {:else}
         <input type="text" placeholder="Search" on:input={debounce} />
     {/if}
     <div id="grid"></div>
+    <div id="gif"></div>
 </div>
