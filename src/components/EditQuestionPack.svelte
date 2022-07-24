@@ -1,7 +1,7 @@
 <script lang="ts">
     import { v4 as uuidv4 } from "uuid";
     import { createEventDispatcher } from "svelte";
-    import { clearCache, questionPack as storedQuestionPack } from "../lib/clientStore";
+    import { clearCache, fetchQuestionPack } from "../lib/clientStore";
     import type { CreatingQuestionPack, EditingQuestionPack } from "../lib/appState";
     import type { ClientEvent } from "../lib/clientEvents";
     import { IQuestionPack, QuestionPack } from "../lib/questionPack";
@@ -35,11 +35,14 @@
     let dispatch = createEventDispatcher<EditQuestionPackEvent>();
 
     let internalQuestionPack: EditorQuestionPack;
-    let questionPackPromise = new Promise(async (resolve, _reject) => {
-        let questionPack: IQuestionPack = await (state.type === "creatingQuestionPack" ? Promise.resolve(null) : $storedQuestionPack);
+
+    const createQuestionPackPromise = async () => {
+        let questionPack: IQuestionPack = await (state.type === "creatingQuestionPack" ? Promise.resolve(null) : fetchQuestionPack(state));
         internalQuestionPack = new EditorQuestionPack(questionPack ?? new QuestionPack());
-        resolve(null);
-    });
+        return internalQuestionPack;
+    }
+
+    let questionPackPromise = createQuestionPackPromise();
 
     const saveQuestionPack = async () => {
         let toSave = internalQuestionPack.toQuestionPack();
@@ -82,7 +85,7 @@
     }
 </script>
 
-{#await questionPackPromise}
+{#await questionPackPromise then _promiseResolved}
     {#if componentEditor.type == "questionPackEditor"}
         <!-- Question pack editor -->
         <fieldset disabled={isSaving}>
@@ -102,20 +105,20 @@
                     {#each internalQuestionPack.questions as question, index (question.id)}
                         <li>
                             <input type="text" value={question.question.text} />
-                            <Button importance="tertiary" on:click={() => editQuestion(question, index)}>EDIT QUESTION (TODO: style me)</Button>
+                            <Button size="small" importance="tertiary" on:click={() => editQuestion(question, index)}>EDIT QUESTION (TODO: style me)</Button>
                         </li>
                     {/each}
                     {#if internalQuestionPack.questions.length < 50}
-                        <li><Button importance="tertiary" on:click={() => createQuestion()} >ADD QUESTION (TODO: style me)</Button></li>
+                        <li><Button size="small" importance="tertiary" on:click={() => createQuestion()} >ADD QUESTION (TODO: style me)</Button></li>
                     {:else}
-                        <li><Button importance="tertiary" disabled={true}>MAXIMUM QUESTIONS REACHED (TODO: style me)</Button></li>
+                        <li><Button size="small" importance="tertiary" disabled={true}>MAXIMUM QUESTIONS REACHED (TODO: style me)</Button></li>
                     {/if}
                 </ul>
             </div>
 
             <ButtonGroup>
-                <Button importance="primary" on:click={() => saveQuestionPack()}>Save</Button>
-                <Button importance="secondary" on:click={() => cancelEditQuestionPack()}>Cancel</Button>
+                <Button size="small" importance="primary" on:click={() => saveQuestionPack()}>Save</Button>
+                <Button size="small" importance="secondary" on:click={() => cancelEditQuestionPack()}>Cancel</Button>
             </ButtonGroup>
         </fieldset>
     {:else if componentEditor.type == "questionEditor"}
@@ -131,8 +134,8 @@
         </div>
 
         <ButtonGroup>
-            <Button importance="primary" on:click={() => saveQuestion()}>Save</Button>
-            <Button importance="secondary" on:click={() => cancelEditQuestion()}>Cancel</Button>
+            <Button size="small" importance="primary" on:click={() => saveQuestion()}>Save</Button>
+            <Button size="small" importance="secondary" on:click={() => cancelEditQuestion()}>Cancel</Button>
         </ButtonGroup>
     {/if}
 {/await}

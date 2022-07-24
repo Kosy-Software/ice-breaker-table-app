@@ -3,7 +3,7 @@
     import type { PlayingGame } from "../lib/appState";
     import { createEventDispatcher } from "svelte";
     import type { ClientEvent } from "../lib/clientEvents";
-    import { clientState, questionPack } from "../lib/clientStore";
+    import { clientState, fetchQuestionPack } from "../lib/clientStore";
     import type { IQuestionPack } from "../lib/questionPack";
     import ButtonGroup from "./subcomponents/ButtonGroup.svelte";
     type PlayingGameEvent = { message: ClientEvent };
@@ -11,6 +11,7 @@
     export let state: PlayingGame;
     $: alreadyAskedQuestionIdxs = [...state.alreadyAskedQuestionsIdxs, state.currentQuestionIdx];
     let dispatch = createEventDispatcher<PlayingGameEvent>();
+    let questionPackPromise = fetchQuestionPack(state);
 
     let askNextQuestion = (qPack: IQuestionPack) => {
         var alreadyAskedQuestionIndexesSet = new Set(alreadyAskedQuestionIdxs);
@@ -81,8 +82,8 @@
 </style>
 
 <div class="game">
-    {#await $questionPack then qPack }
-        {#if state.currentQuestionIdx !== 0 && !state.currentQuestionIdx}
+    {#await questionPackPromise then qPack }
+        {#if qPack.questions.length == 0 || (state.currentQuestionIdx !== 0 && !state.currentQuestionIdx)}
             <h1>Wow! You've answered all of the questions!</h1>
             {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
                 <div class="gap"></div>
@@ -99,7 +100,7 @@
                 </ButtonGroup>
             {/if}
         {:else}
-            <h1>{ qPack.questions[state.currentQuestionIdx] }</h1>
+            <h1>{ qPack.questions[state.currentQuestionIdx].text }</h1>
             {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
                 <div class="gap"></div>
                 <ButtonGroup>

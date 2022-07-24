@@ -20,6 +20,10 @@
         dispatch("message", { type: "questionPackPicked", questionPackId: questionPack.id, nextQuestionIdx: 0 });
     };
 
+    const editQuestionPack = (questionPack: IQuestionPackListItem) => {
+        dispatch("message", { type: "questionPackEditRequested", questionPackId: questionPack.id });
+    }
+
     const createQuestionPack = () => {
         dispatch("message", { type: "questionPackCreationRequested" });
     }
@@ -73,6 +77,7 @@
             <div class="question-packs">
                 {#each questionPacks as questionPack}
                     <QuestionPackCard value={questionPack} on:click={() => pickQuestionPack(questionPack)}></QuestionPackCard>
+                    <Button importance="tertiary" on:click={() => editQuestionPack(questionPack)}>EDIT</Button>
                 {:else}
                     <span class="placeholder">Create your own question pack to make your happy hours more fun.</span>
                 {/each}
@@ -93,6 +98,7 @@
             <div class="question-packs">
                 {#each questionPacks as questionPack}
                     <QuestionPackCard value={questionPack} on:click={() => pickQuestionPack(questionPack)}></QuestionPackCard>
+                    <Button importance="tertiary" on:click={() => editQuestionPack(questionPack)}>EDIT</Button>
                 {:else}
                     <span>Apparently, we haven't created our own question packs (yet)</span>
                 {/each}

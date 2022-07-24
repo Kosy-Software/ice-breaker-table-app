@@ -22,7 +22,6 @@ specifiers:
   svelte-check: ^2.2.8
   svelte-loader: ^3.1.2
   svelte-preprocess: ^4.9.8
-  svelte-promisable-stores: ^0.1.3
   ts-loader: ^9.2.6
   typescript: ^4.4.4
   uuid: ^8.3.2
@@ -55,7 +54,6 @@ devDependencies:
   svelte-check: 2.8.0_3ls4ikel75z4dqlrln5uclklzm
   svelte-loader: 3.1.3_svelte@3.49.0
   svelte-preprocess: 4.10.7_zdwdrqsnqsfygx465g7bvppr4e
-  svelte-promisable-stores: 0.1.3
   ts-loader: 9.3.1_3o2jfq6vfqxns3sz6wn2nnc3ei
   typescript: 4.7.4
   webpack: 5.73.0_webpack-cli@4.10.0
@@ -4171,12 +4169,6 @@ packages:
       strip-indent: 3.0.0
       svelte: 3.49.0
       typescript: 4.7.4
-    dev: true
-
-  /svelte-promisable-stores/0.1.3:
-    resolution: {integrity: sha512-fDRKHXSq1tnf6TTxL63P8gnoV4i1C2Kt5rE5yZHO7s3EftZuPhuz2p21d21QlCSVl0ffdy/QTgAknVSv5/R8IA==}
-    dependencies:
-      svelte: 3.49.0
     dev: true
 
   /svelte/3.49.0:

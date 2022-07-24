@@ -126,6 +126,7 @@
                 break;
             case "questionPackEdited":
             case "questionPackCreated":
+            case "questionPackEditCancelled":
                 state.set({
                     type: "pickingQuestionPack"
                 });

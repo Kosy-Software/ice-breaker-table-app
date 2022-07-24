@@ -3,7 +3,7 @@ import type { IQuestionPackListItem } from './questionPack';
 import { Question } from './questionPack';
 
 //TODO: replace me with an actual store...
-const _questionPacks: IQuestionPack[] = [
+let _questionPacks: IQuestionPack[] = [
     {
         id: "1",
         icon: "far fa-face-smile",
@@ -97,14 +97,36 @@ const _questionPacks: IQuestionPack[] = [
     }
 ]
 
-export const questionPacks = (_questionPacks as IQuestionPackListItem[]);
-export const fetchQuestionPack = (questionPackId: string) => _questionPacks.filter(qp => qp.id === questionPackId)[0];
-export const saveQuestionPack = (questionPack: IQuestionPack) => {
-    const index = _questionPacks.findIndex(qp => qp.id === questionPack.id);
-    if (index === -1) {
-        _questionPacks.push(questionPack);
-    } else {
-        _questionPacks[index] = questionPack;
+const getQuestionPacks = (): IQuestionPack[] => {
+    var qPacks: any = JSON.parse(localStorage.getItem("questionPacks"));
+
+    if (!qPacks || qPacks.version !== 1) {
+        localStorage.setItem("questionPacks", JSON.stringify({ version: 1, questionPacks: _questionPacks }));
+        return _questionPacks;
     }
+    return qPacks.questionPacks;
+}
+
+const saveQuestionPacks = (qPacks: IQuestionPack[]) => {
+    localStorage.setItem("questionPacks", JSON.stringify({ version: 1, questionPacks: qPacks }));
+}
+
+const qPacks = getQuestionPacks();
+
+console.log("Stored qPacks: ", qPacks);
+export const questionPacks = (qPacks as IQuestionPackListItem[]);
+export const fetchQuestionPack = (questionPackId: string) => {
+    var foundQPack = qPacks.filter(qp => qp.id === questionPackId)[0];
+    console.log("Found qPack:", foundQPack);
+    return foundQPack;
+}
+export const saveQuestionPack = (questionPack: IQuestionPack) => {
+    const index = qPacks.findIndex(qp => qp.id === questionPack.id);
+    if (index === -1) {
+        qPacks.push(questionPack);
+    } else {
+        qPacks[index] = questionPack;
+    }
+    saveQuestionPacks(qPacks);
     return Promise.resolve(true);
 }
