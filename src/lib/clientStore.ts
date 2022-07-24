@@ -1,8 +1,9 @@
-import { Readable, Writable, writable, get } from 'svelte/store';
+import { Writable, writable, get, readable } from 'svelte/store';
 import type { AppState, ClientState } from './appState';
 import type { IQuestionPack } from './questionPack';
-import { state } from './appStateStore';
 import { fetchQuestionPack as fetchQuestionPackFromTemporaryStore } from "./temporaryStore";
+import { GiphyFetch } from '@giphy/js-fetch-api';
+import settings from "../../settings.json";
 
 export const clientState: Writable<ClientState> = writable({ clients: {}, appHostClientUuid: "", kosyHostClientUuid: "", currentClientUuid: "" });
 
@@ -28,4 +29,6 @@ export const fetchQuestionPack = (appState: AppState): Promise<IQuestionPack> =>
         default:
             return Promise.resolve(null);
     }
-};
+}
+
+export const giphyFetch = readable(new GiphyFetch(settings.giphy.key));

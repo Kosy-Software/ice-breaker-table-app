@@ -9,6 +9,7 @@
     import ButtonGroup from './subcomponents/ButtonGroup.svelte';
     import Button from '@kosy/kosy-svelte-components/Button.svelte';
     import { EditorQuestion, EditorQuestionPack } from "../lib/editorQuestionPack";
+    import GiphySelector from "./subcomponents/GiphySelector.svelte";
 
     //app state
     export let state: CreatingQuestionPack | EditingQuestionPack;
@@ -129,8 +130,8 @@
         </div>
 
         <div>
-            <label for="imageId">Image</label>
-            <input id="imageId" type="text" value="TODO." />
+            <label for="imageId">Gif</label>
+            <GiphySelector imageId={componentEditor.question.question.imageId} on:giphy-selected={(giphy) => { componentEditor["question"].question.imageId = giphy.detail.id; }} />
         </div>
 
         <ButtonGroup>

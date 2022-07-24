@@ -31,7 +31,7 @@ jobs:
         uses: jsdaniell/create-json@1.1.2
         with:
           name: "settings.json"
-          json: "{}"  
+          json: ${{ secrets.SETTINGS_JSON }}
 
       - name: Install, Check and Build 🔧
         run: |
