@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { QuestionPackListItem } from "../lib/questionPack";
+    import type { IQuestionPackListItem } from "../lib/questionPack";
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
@@ -8,7 +8,7 @@
         dispatch('click', event);
     }
 
-    export var value: QuestionPackListItem;
+    export var value: IQuestionPackListItem;
 </script>
 
 <style lang="scss">

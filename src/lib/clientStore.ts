@@ -1,25 +1,38 @@
-import axios from 'axios';
-import { Readable, Writable, writable } from 'svelte/store';
+import { Readable, Writable, writable, get } from 'svelte/store';
 import { derivedPromisable } from 'svelte-promisable-stores';
 import type { AppState, ClientState } from './appState';
-import type { QuestionPack } from './questionPack';
+import type { IQuestionPack } from './questionPack';
 import { state } from './appStateStore';
 import { fetchQuestionPack as fetchQuestionPackFromTemporaryStore } from "./temporaryStore";
 
 export const clientState: Writable<ClientState> = writable({ clients: {}, appHostClientUuid: "", kosyHostClientUuid: "", currentClientUuid: "" });
 
-const fetchQuestionPack = async (appState: AppState): Promise<QuestionPack> => {
-    if (appState?.type === "game") {
-        return await Promise.resolve(fetchQuestionPackFromTemporaryStore(appState.questionPackId));
-    } else {
-        return Promise.resolve(null);
+
+const cachedQuestionPack: Writable<IQuestionPack> = writable(null);
+
+export const clearCache = () => {
+    cachedQuestionPack.set(null);
+}
+
+const fetchQuestionPack = async (appState: AppState): Promise<IQuestionPack> => {
+    switch (appState?.type) {
+        case "playingGame":
+        case "editingQuestionPack":
+            var cached = get(cachedQuestionPack);
+            if (cached?.id === appState.questionPackId) {
+                return Promise.resolve(cached);
+            } else {
+                var fetched = await new Promise<IQuestionPack>((resolve, reject) => resolve(fetchQuestionPackFromTemporaryStore(appState.questionPackId)));
+                cachedQuestionPack.set(fetched);
+                return fetched;
+            }
+        default:
+            return Promise.resolve(null);
     }
 };
 
-export const questionPack: Readable<Promise<QuestionPack>> = derivedPromisable(
+export const questionPack: Readable<Promise<IQuestionPack>> = derivedPromisable(
     state,
     fetchQuestionPack,
-    (_previousResult: Promise<QuestionPack>, $currentState: AppState, $previousState: AppState) => {
-        return ($currentState.type === "game" && ($previousState?.type !== "game" || $previousState.questionPackId !== $currentState.questionPackId))
-    }
+    (_previousResult: Promise<IQuestionPack>, _$currentState: AppState, _$previousState: AppState) => true
 );

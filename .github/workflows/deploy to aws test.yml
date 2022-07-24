@@ -35,9 +35,10 @@ jobs:
 
       - name: Install, Check and Build 🔧
         run: |
-          yarn install
-          yarn run check
-          yarn run build
+          npm install -g pnpm
+          pnpm install
+          pnpm run check
+          pnpm run build
            
       - name: Deploy to aws 🚀
         uses: jakejarvis/s3-sync-action@master

@@ -1,30 +1,28 @@
 <script lang="ts">
     import Button from "@kosy/kosy-svelte-components/Button.svelte";
-    import axios from "axios";
     import { createEventDispatcher } from "svelte";
     import type { ClientEvent } from "../lib/clientEvents";
     import { delay } from "../lib/helpers";
-    import type { QuestionPackListItem } from "../lib/questionPack";
+    import type { IQuestionPackListItem } from "../lib/questionPack";
     import { questionPacks } from "../lib/temporaryStore";
     import Loading from "./Loading.svelte";
     import QuestionPackCard from "./QuestionPackCard.svelte";
     
     type PickQuestionEvent = { message: ClientEvent };
 
-    $: publicQuestionPackPromise = Promise.all([delay(2000), Promise.resolve<QuestionPackListItem[]>(questionPacks.filter(pack => pack.isPublic))]).then(x => x[1]); 
-    $: customQuestionPackPromise = Promise.all([delay(2000), Promise.resolve<QuestionPackListItem[]>(questionPacks.filter(pack => !pack.isPublic))]).then(x => x[1]);
+    $: publicQuestionPackPromise = Promise.all([delay(2000), Promise.resolve<IQuestionPackListItem[]>(questionPacks.filter(pack => pack.isPublic))]).then(x => x[1]); 
+    $: customQuestionPackPromise = Promise.all([delay(2000), Promise.resolve<IQuestionPackListItem[]>(questionPacks.filter(pack => !pack.isPublic))]).then(x => x[1]);
     //axios.get<QuestionPackListItem[]>(`//jsonplaceholder.typeicode.com/users?keywords=${keywords.join(",")}`).then((result) => result.data);
 
     var dispatch = createEventDispatcher<PickQuestionEvent>();
 
-    const pickQuestionPack = (questionPack: QuestionPackListItem) => {
+    const pickQuestionPack = (questionPack: IQuestionPackListItem) => {
         dispatch("message", { type: "questionPackPicked", questionPackId: questionPack.id, nextQuestionIdx: 0 });
     };
 
-    //Times out after 3 seconds to show a loading screen if necessary
-    let showLoadingPromise: Promise<void> = new Promise((resolve, _reject) => {
-        setTimeout(() => { resolve(); }, 3000);
-    });
+    const createQuestionPack = () => {
+        dispatch("message", { type: "questionPackCreationRequested" });
+    }
 </script>
 
 <style lang="scss">
@@ -64,11 +62,13 @@
             <h5>Your icebreakers</h5>
             <span>Launch your own question pack or create a new one</span>
         </div>
-        <Button size="small" importance="primary"><span class="text">+ Question pack</span></Button>
+        {#if questionPacks.length < 50}
+            <Button size="small" importance="primary" on:click={() => createQuestionPack()}><span class="text">+ Question pack</span></Button>
+        {/if}
     </div>
     <div class="custom-packs">
         {#await customQuestionPackPromise}
-            <Loading msg="Loading question packs"></Loading>
+            <Loading msg="Loading question packs" delay={20}></Loading>
         {:then questionPacks}
             <div class="question-packs">
                 {#each questionPacks as questionPack}
@@ -88,7 +88,7 @@
     </div>
     <div>
         {#await publicQuestionPackPromise}
-            <Loading msg="Loading question packs"></Loading>
+            <Loading msg="Loading question packs" delay={20}></Loading>
         {:then questionPacks}
             <div class="question-packs">
                 {#each questionPacks as questionPack}

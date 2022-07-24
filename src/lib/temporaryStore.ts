@@ -1,8 +1,9 @@
-import type { QuestionPack } from "./questionPack";
-import type { QuestionPackListItem } from './questionPack';
+import type { IQuestionPack } from "./questionPack";
+import type { IQuestionPackListItem } from './questionPack';
+import { Question } from './questionPack';
 
 //TODO: replace me with an actual store...
-const _questionPacks: QuestionPack[] = [
+const _questionPacks: IQuestionPack[] = [
     {
         id: "1",
         icon: "far fa-face-smile",
@@ -10,10 +11,10 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Fun Icebreaker Questions",
         questions: [
-            "What is Kosy?",
-            "Who is Kosy?",
-            "Why is Kosy?",
-            "When is Kosy?"
+            new Question("What is Kosy?"),
+            new Question("Who is Kosy?"),
+            new Question("Why is Kosy?"),
+            new Question("When is Kosy?")
         ]
     },
     {
@@ -23,9 +24,9 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Icebreaker Questions for Work",
         questions: [
-            "Why do birds, suddenly appear?",
-            "Why did the chicken cross the road?",
-            "How many superheroes took their name and inspiration from the animal kingdom?"
+            new Question("Why do birds, suddenly appear?"),
+            new Question("Why did the chicken cross the road?"),
+            new Question("How many superheroes took their name and inspiration from the animal kingdom?")
         ]
     },
     {
@@ -35,8 +36,8 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Weird Icebreaker Questions",
         questions: [
-            "What are the main advantages of using typescript over javascript?",
-            "What are the main disadvantages of using typescript over javascript?"
+            new Question("What are the main advantages of using typescript over javascript?"),
+            new Question("What are the main disadvantages of using typescript over javascript?")
         ]
     },
     {
@@ -46,8 +47,8 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Holiday Icebreaker Questions",
         questions: [
-            "What is the most Belgian thing you can think of?",
-            "What kinds of Belgian beer can you think of?"
+            new Question("What is the most Belgian thing you can think of?"),
+            new Question("What kinds of Belgian beer can you think of?")
         ]
     },
     {
@@ -57,8 +58,8 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Best Questions for Meetings",
         questions: [
-            "What is the most Belgian thing you can think of?",
-            "What kinds of Belgian beer can you think of?"
+            new Question("What is the most Belgian thing you can think of?"),
+            new Question("What kinds of Belgian beer can you think of?")
         ]
     },
     {
@@ -68,8 +69,8 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Fun Team Icebreaker Questions",
         questions: [
-            "What is the most Belgian thing you can think of?",
-            "What kinds of Belgian beer can you think of?"
+            new Question("What is the most Belgian thing you can think of?"),
+            new Question("What kinds of Belgian beer can you think of?")
         ]
     },
     {
@@ -79,8 +80,8 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Community Building Questions",
         questions: [
-            "What is the most Belgian thing you can think of?",
-            "What kinds of Belgian beer can you think of?"
+            new Question("What is the most Belgian thing you can think of?"),
+            new Question("What kinds of Belgian beer can you think of?")
         ]
     },
     {
@@ -90,11 +91,20 @@ const _questionPacks: QuestionPack[] = [
         isPublic: true,
         name: "Inappropriate Icebreakers",
         questions: [
-            "What is the most Belgian thing you can think of?",
-            "What kinds of Belgian beer can you think of?"
+            new Question("What is the most Belgian thing you can think of?"),
+            new Question("What kinds of Belgian beer can you think of?")
         ]
     }
 ]
 
-export const questionPacks = (_questionPacks as QuestionPackListItem[]);
+export const questionPacks = (_questionPacks as IQuestionPackListItem[]);
 export const fetchQuestionPack = (questionPackId: string) => _questionPacks.filter(qp => qp.id === questionPackId)[0];
+export const saveQuestionPack = (questionPack: IQuestionPack) => {
+    const index = _questionPacks.findIndex(qp => qp.id === questionPack.id);
+    if (index === -1) {
+        _questionPacks.push(questionPack);
+    } else {
+        _questionPacks[index] = questionPack;
+    }
+    return Promise.resolve(true);
+}

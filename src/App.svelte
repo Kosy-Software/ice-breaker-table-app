@@ -10,6 +10,7 @@
     import PickQuestionPack from "./components/PickQuestionPack.svelte";
     import Loading from "./components/Loading.svelte";
     import Waiting from "./components/Waiting.svelte";
+    import EditQuestionPack from "./components/EditQuestionPack.svelte";
 
     //Simplest to implement -> just return the current state
     let getState = () => {
@@ -44,7 +45,7 @@
         switch (message.type) {
             case "question-asked":
                 state.set({
-                    type: "game",
+                    type: "playingGame",
                     questionPackId: message.questionPackId,
                     alreadyAskedQuestionsIdxs: message.previousQuestionIdxs,
                     currentQuestionIdx: message.currentQuestionIdx
@@ -52,7 +53,7 @@
                 break;
             case "questions-reset":
                 state.set({
-                    type: "game",
+                    type: "playingGame",
                     questionPackId: message.questionPackId,
                     alreadyAskedQuestionsIdxs: [],
                     currentQuestionIdx: message.currentQuestionIdx
@@ -60,7 +61,7 @@
                 break;
             case "pick-question-pack-requested":
                 state.set({
-                    type: "pickQuestionPack"
+                    type: "pickingQuestionPack"
                 });
                 break;
             default:
@@ -112,6 +113,23 @@
                     type: "pick-question-pack-requested"
                 });
                 break;
+            case "questionPackCreationRequested":
+                state.set({
+                    type: "creatingQuestionPack"
+                });
+                break;
+            case "questionPackEditRequested":
+                state.set({
+                    type: "editingQuestionPack",
+                    questionPackId: msg.questionPackId
+                });
+                break;
+            case "questionPackEdited":
+            case "questionPackCreated":
+                state.set({
+                    type: "pickingQuestionPack"
+                });
+                break;
             default:
                 break;
         }
@@ -124,16 +142,11 @@
             kosyHostClientUuid: initialInfo.initializerClientUuid,
             currentClientUuid: initialInfo.currentClientUuid 
         });
-        if (initialInfo.currentAppState) {
+        if (initialInfo.currentAppState && initialInfo.currentAppState.type !== "loading") {
             state.set(initialInfo.currentAppState)
         } else {
-            state.set({ type: "pickQuestionPack" });
+            state.set({ type: "pickingQuestionPack" });
         }
-    });
-
-    //Times out after 3 seconds to show a loading screen if necessary
-    let showLoadingPromise: Promise<void> = new Promise((resolve, _reject) => {
-        setTimeout(() => { resolve(); }, 3000);
     });
 </script>
 
@@ -152,18 +165,18 @@
 
 <main>
     {#await loadInfo}
-        {#await showLoadingPromise then _data}
-            <Loading msg="Loading icebreaker app"></Loading>
-        {/await}
+        <Loading msg="Loading icebreaker app" delay={3000}></Loading>
     {:then _data}
-        {#if $state.type === "game"}
-            <Game state={$state} on:message={(e) => processClientMessage(e.detail)}></Game>
-        {:else if ($state.type === "pickQuestionPack")}
-            {#if $clientState.appHostClientUuid === $clientState.currentClientUuid}
-                <PickQuestionPack on:message={(e) => processClientMessage(e.detail)}></PickQuestionPack>
-            {:else}
-                <Waiting userName={$clientState.clients[$clientState.appHostClientUuid].clientName}></Waiting>
-            {/if}
+        {#if $state.type === "playingGame"}
+            <Game state={$state} on:message={(e) => processClientMessage(e.detail)} />
+        {:else if ($clientState.appHostClientUuid !== $clientState.currentClientUuid)}
+            <Waiting userName={$clientState.clients[$clientState.appHostClientUuid].clientName} />
+        {:else if ($state.type === "pickingQuestionPack")}
+            <PickQuestionPack on:message={(e) => processClientMessage(e.detail)} />
+        {:else if ($state.type === "creatingQuestionPack")}
+            <EditQuestionPack state={$state} on:message={(e) => processClientMessage(e.detail)} />
+        {:else if ($state.type === "editingQuestionPack")}
+            <EditQuestionPack state={$state} on:message={(e) => processClientMessage(e.detail)} />
         {/if}
     {/await}
 </main>

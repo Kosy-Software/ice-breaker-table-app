@@ -1,21 +1,21 @@
 <script type="ts">
     import Button from "@kosy/kosy-svelte-components/Button.svelte";
-    import type { GameState } from "../lib/appState";
+    import type { PlayingGame } from "../lib/appState";
     import { createEventDispatcher } from "svelte";
     import type { ClientEvent } from "../lib/clientEvents";
     import { clientState, questionPack } from "../lib/clientStore";
-    import type { QuestionPack } from "../lib/questionPack";
-    import ButtonGroup from "./ButtonGroup.svelte";
-    type GameEvent = { message: ClientEvent };
+    import type { IQuestionPack } from "../lib/questionPack";
+    import ButtonGroup from "./subcomponents/ButtonGroup.svelte";
+    type PlayingGameEvent = { message: ClientEvent };
 
-    export let state: GameState;
+    export let state: PlayingGame;
     $: alreadyAskedQuestionIdxs = [...state.alreadyAskedQuestionsIdxs, state.currentQuestionIdx];
-    let dispatch = createEventDispatcher<GameEvent>();
+    let dispatch = createEventDispatcher<PlayingGameEvent>();
 
-    let askNextQuestion = (qPack: QuestionPack) => {
+    let askNextQuestion = (qPack: IQuestionPack) => {
         var alreadyAskedQuestionIndexesSet = new Set(alreadyAskedQuestionIdxs);
         //Filters out the already asked questions and makes sure to preserve the original question's index
-        let questionsToAsk = qPack.questions.map((q, index) => { return { index } }).filter((q, index) => !alreadyAskedQuestionIndexesSet.has(index));
+        let questionsToAsk = qPack.questions.map((_q, index) => { return { index } }).filter((_q, index) => !alreadyAskedQuestionIndexesSet.has(index));
         //Random next question
         let nextQuestion = questionsToAsk[Math.floor(Math.random() * questionsToAsk.length)];
         //Relay next question
@@ -28,7 +28,7 @@
     }
 
     //Resets the questions and immediately asks a random question
-    let resetQuestions = (qPack: QuestionPack) => {
+    let resetQuestions = (qPack: IQuestionPack) => {
         //Random next question
         let nextQuestionIndex = Math.floor(Math.random() * qPack.questions.length);
         //Relay reset questions
@@ -114,5 +114,5 @@
             <p>{$clientState.clients[$clientState.appHostClientUuid]?.clientName} is the host</p>
         {/if}
         <img id="drums" src="assets/drum.svg" alt="Drum icon" />    
-{/await}
+    {/await}
 </div>

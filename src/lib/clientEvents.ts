@@ -1,10 +1,17 @@
+import type { IQuestionPack } from './questionPack';
+
 //Collection of internal messages
 export type ClientEvent = 
     | AppClosed
     | NextQuestionAsked
     | QuestionsReset
     | QuestionPackPicked
-    | AnotherQuestionPackRequested
+    | AnotherQuestionPackRequested    
+    | QuestionPackCreationRequested
+    | QuestionPackCreated
+    | QuestionPackEditRequested
+    | QuestionPackEdited
+    | QuestionPackEditCancelled
 
 export type NextQuestionAsked = {
     type: "nextQuestionAsked";
@@ -31,4 +38,27 @@ export type QuestionPackPicked = {
 
 export type AnotherQuestionPackRequested = {
     type: "anotherQuestionPackRequested";
+}
+
+export type QuestionPackCreationRequested = {
+    type: "questionPackCreationRequested";
+}
+
+export type QuestionPackCreated = {
+    type: "questionPackCreated";
+    questionPack: IQuestionPack;
+}
+
+export type QuestionPackEditRequested = {
+    type: "questionPackEditRequested";
+    questionPackId: string;
+}
+
+export type QuestionPackEdited = {
+    type: "questionPackEdited";
+    questionPack: IQuestionPack;
+}
+
+export type QuestionPackEditCancelled = {
+    type: "questionPackEditCancelled";
 }
